@@ -1,0 +1,15 @@
+# 本地机器配置（Claude Code 本地权限等），不发布
+.claude/settings.local.json
+
+# Python 缓存
+__pycache__/
+*.py[cod]
+
+# 误放进 pipeline 的个人学习内容（pipeline 仓库只装工具，不装笔记）
+# workspace 内容应放在独立目录/仓库，见 README「使用方式」
+*_qa/
+*_arrangement.yaml
+*_原文素材归档*.md
+*_prereq.md
+*_Textbook.*
+*_review.md
