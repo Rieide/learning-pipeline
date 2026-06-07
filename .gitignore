@@ -13,3 +13,8 @@ __pycache__/
 *_prereq.md
 *_Textbook.*
 *_review.md
+
+# 上面的 *_Textbook.* 在 Windows 不区分大小写时会误匹配到 pipeline 的工具文件，
+# 因此显式取消忽略（这些文件需要包含在仓库中）
+!note_to_textbook.md
+!prereq_to_textbook.md
