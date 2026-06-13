@@ -5,8 +5,9 @@ description: 把一个领域/学习目标拆成「子主题 DAG」的宏观拆�
 
 # 宏观拆分：领域/目标 → 子主题 DAG
 
-> **定位**：这是「学什么、按什么依赖学、先学哪块」的**宏观规划工作流**，独立于单主题深读流程（见 `prereq_and_objectives.md` → `qa_note.md` → `qa_to_archive.md` → `note_to_textbook.md` → `to_review_cards.md`）。
+> **定位**：这是「学什么、按什么依赖学、先学哪块」的**宏观规划工作流**，独立于单主题深读流程（见 `source_selection.md` → `prereq_and_objectives.md` → `qa_note.md` → `qa_to_archive.md` → `note_to_textbook.md` → `to_review_cards.md`）。
 > **配套**：产出的占位条目应符合 `topic_hub.md` 的 frontmatter 约定，便于 Dataview 汇总。
+> **衔接 collect**：本步拆出的 theme 是"目标明确但材料待获取"。每个节点带一个 `source_hint`（候选材料方向种子），作为下游 `source_selection.md`（`collect` 步）的输入——由它把 theme 收敛成"确定的、范围可控的资料清单"，再进 `prereq_and_objectives.md` 抽 `S_need`。
 
 ---
 
@@ -49,6 +50,7 @@ description: 把一个领域/学习目标拆成「子主题 DAG」的宏观拆�
 | `roi` | high / mid / low（达成目标的边际收益） |
 | `align` | 与阶段定位的对齐说明（含降级处理，如"只认识不深啃"） |
 | `objective` | 一句话：学完这块要能做什么 |
+| `source_hint` | 候选材料方向的**种子**（"大概去哪类材料找"，如某论文/某源码目录/某文档）。供下游 `source_selection.md`（collect 步）确定到"具体哪份+读哪部分"。**只给方向，不在此确定范围裁剪。** |
 
 ### 3.2 依赖图（Mermaid）
 
@@ -65,7 +67,7 @@ flowchart LR
 
 ### 3.3 obsidian 占位条目（每个节点一份）
 
-按 `topic_hub.md` 模板生成骨架，`status: planned`，填好 `topic / tags / deps / roi / objective`，其余区块留空待深读流程填充。
+按 `topic_hub.md` 模板生成骨架，`status: planned`，填好 `topic / tags / deps / roi / objective / source_hint`，其余区块留空待深读流程填充（`source_hint` 给 `collect` 步当种子）。
 
 ---
 

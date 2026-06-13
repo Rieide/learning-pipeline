@@ -22,6 +22,7 @@ status: planned        # planned→collect→prereq→reading→archive→textbo
 deps: [VectorNet, prediction-proto]
 roi: high
 objective: 讲清 SIMPL 对称/instance-centric 表示，并与 MTR/VectorNet 对照
+source_hint: [SIMPL 论文 arXiv:2402.02519, modules/prediction 下 simpl_* 源码]
 updated: 2026-06-05
 ---
 
@@ -32,8 +33,13 @@ updated: 2026-06-05
 - [ ] Q1 …
 - [ ] Q2 …
 
-## 前置知识
-→ [[{source}_prereq]]
+## 资料清单（collect）
+→ [[{topic}_sources]]（source_selection.md 把 theme 收敛成确定的、范围可控的材料）
+
+## 前置知识（预习组，与主材料组分离）
+→ [[{source}_prereq]]（差集脚手架）
+→ [[{topic}_预习_Textbook.pdf]]（预习教材，prereq_to_textbook 可选旁支）
+- 预习随文 QA：`{topic}_预习_qa/` ｜ 归档：[[{topic}_预习_原文素材归档]]
 
 ## 原始材料
 - 随文问答：`{source}_qa/`（单文件 QA，front-matter 带 id/content_hash；脚本 finalize 锁定正文）
@@ -60,13 +66,16 @@ updated: 2026-06-05
 | `deps` | 前置主题（来自 topic_map 的 DAG） |
 | `roi` | high / mid / low |
 | `objective` | 一句话目标 |
+| `source_hint` | 候选材料方向种子（topic_map 填，`source_selection.md`/collect 步消费） |
 | `updated` | 最近推进日期（绝对日期） |
 
 ### status 流转（与各 prompt 对应）
 ```
-planned  →  collect   →  prereq              →  reading      →  archive        →  textbook            →  review            →  done
-(topic_map) (收集材料)   (prereq_and_objectives) (qa_note 随文)   (qa_to_archive)   (note_to_textbook)     (to_review_cards)   (background_update 写台账后置 done)
+planned  →  collect          →  prereq              →  reading      →  archive        →  textbook            →  review            →  done
+(topic_map) (source_selection)   (prereq_and_objectives) (qa_note 随文)   (qa_to_archive)   (note_to_textbook)     (to_review_cards)   (background_update 写台账后置 done)
 ```
+
+> **可选 · 教材优先路（v1→QA→v2）**：`reading` 之前可先跑 `source_to_textbook.md`，从收料生成主教材 **v1**（阅读底本）；之后 `qa_note` 读 v1 边读边 QA，`note_to_textbook` 模式 B 把 QA 融合回 v1 → **v2**（`status: textbook` 即指 v2 成稿）。源单一可直读时跳过此路，走 QA 优先（`note_to_textbook` 模式 A 从 QA 从零建）。主教材 v1、v2 是**同一文件 `{topic}_Textbook` 的演进**。
 
 > **置 done 的前置条件**：跑完 `background_update.md`，把本轮新增 `S_have`（及"仍存疑"项）追加进背景文件（`$PERSONAL_BACKGROUND`）的知识资产台账。没回填背景，不算闭环，不置 done。
 

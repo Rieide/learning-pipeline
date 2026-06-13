@@ -8,6 +8,7 @@ description: 编辑层「预习这一路」：把 prereq_and_objectives.md 产�
 > **定位**：这是**编辑层**里「预习这一路」的规范，与「笔记这一路」`note_to_textbook.md` 对称。本文件只管**把前置知识差集组织成可学的预习内容**；**怎么渲染成 .tex（预导言/TikZ/画图避坑/编译自检）以及通用「教科书味」写作标准，全部见渲染层 `tool_prompts/to_tex.md`**。
 > **用法：把本文件 + `tool_prompts/to_tex.md` 一起作为上下文。** 本文件管「差集怎么扩写、扩到什么深度、按什么边界」，`to_tex.md` 管「怎么写得有教科书味 + 排版/绘图/编译」。
 > **在流程中的位置**（见 `README.md`）：上游 `prereq_and_objectives.md` 产出 `{source}_prereq.md`（差集 + 目标问题，最小脚手架）→ **本步（把预习也做成可复习教材）** → 渲染层 `tool_prompts/to_tex.md`。这是 prereq 的**可选旁分支**（类比 `to_review_cards.md`），产出在 obsidian 枢纽 `topic_hub.md`「前置知识」区链接。
+> **预习组（与主材料组分离的独立一段）**：本步产出的预习教材，**本身就是一份可"边读边 QA"的材料**——读它时跑 `qa_note.md` 产出 `{topic}_预习_qa/`，构成「预习教材 + 预习QA」一组，可继续走 `qa_to_archive.md` 归档。**预习教材即预习组的 v1**：可选地由 `note_to_textbook.md` 模式 B 把预习QA 融合回它、原地长成**预习 v2**，与主教材 v1→v2 对称。它与「主材料 + 主QA」组**全程用 `{source}` 命名空间分离、绝不并入同一份归档**：预习内容是**跨领域的基础底子、不是完整 topic**，混入主组会污染 topic 归档、并让能力画像分不清"基础底子 vs topic 专属"（分组回填见 `background_update.md`）。
 
 ---
 
@@ -80,7 +81,7 @@ description: 编辑层「预习这一路」：把 prereq_and_objectives.md 产�
 - 通用「教科书味」写作标准见其 §6；
 - 预导言、固定 TikZ 样式、画图避坑见其 §1/§2/§3；
 - 编译自检见其 §5（XeLaTeX 连两遍 + 查 `.log` + 确认 PDF）。
-- 产物命名建议 `{source}_预习_Textbook.tex`，与材料同级目录；在 `topic_hub.md`「前置知识」区链接。
+- 产物命名（**统一 `{topic}_预习_*` 前缀，与主组 `{topic}_*` 区分**）：预习教材 `{topic}_预习_Textbook.tex`；其随文 QA 落 `{topic}_预习_qa/`、归档 `{topic}_预习_原文素材归档.md`。均与材料同级目录，在 `topic_hub.md`「前置知识 / 预习QA」区链接。
 
 ---
 

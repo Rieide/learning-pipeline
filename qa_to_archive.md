@@ -26,6 +26,8 @@ description: 把 {source}_qa/ 里的单文件 QA 归档成「原文素材归档�
   - 若尚未 finalize：先 `python $env:LEARNING_PIPELINE\scripts\qa_archive.py finalize {source}_qa`。
 - 可选：`prereq_and_objectives.md` 的阅读目标问题（规划章节骨架用）。
 
+> **按组运行（通用）**：`{source}_qa/` 可以是任一组——主组（如 `{topic}_qa/`）或预习组（如 `{topic}_预习_qa/`）。本步对它们一视同仁、**各跑一次**，输出各自的归档（名随该组 `{source}` 前缀，如 `{topic}_原文素材归档` / `{topic}_预习_原文素材归档`）；**绝不跨组合并**进同一份归档。本步逻辑与"组"无关，只认它被指向的那个 `{source}_qa/`。
+
 > **LLM 只读 front-matter 的导航字段**（`title`/`summary`/`questions`/`chapter_hint`/`related`）来做编排判断。**不需要、也不应该读正文区**——读正文只会诱使你去"搬运/改写"，那是脚本的活。
 
 ---
