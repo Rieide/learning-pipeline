@@ -1,6 +1,6 @@
 # 学习工作流总览
 
-> 这组 prompt 把"从一个领域，到能讲清/能用的个性化知识资产"拆成两套工作流，外加一类被流程步骤调用的工具 prompt 和一个机械层脚本。
+> 这组 prompt 把"从一个领域，到能讲清/能用的个性化知识资产"拆成两套工作流（宏观拆分 + 单主题深读）、一个时间驱动的背景同步入口，外加一类被流程步骤调用的工具 prompt 和一个机械层脚本。
 > 每份 prompt 是手动调用的上下文规范（非 Claude Code skill）。下面是它们如何衔接。
 
 ---
@@ -46,8 +46,8 @@ python $env:LEARNING_PIPELINE\scripts\qa_archive.py finalize <workspace>\{source
 source_selection.md        收料：theme(+source_hint) → 确定的、范围可控的资料清单  status: collect
         │                  （服务 objective+按 align 降级取材+范围裁剪，对抗通读）
 prereq_and_objectives.md   读前：从资料清单抽 S_need → 前置知识(差集)+阅读目标问题  status: prereq
-  └ 预习路 prereq_to_textbook.md → to_tex.md：把预习做成教材；该教材再走 qa_note → 预习组 {topic}_预习_qa/
-                               （与主材料组 {topic}_* 全程分离、各自归档，分别喂能力画像）
+  └ 预习路 prereq_to_textbook.md → to_tex.md：差集→预习教材 v1；再 qa_note→预习QA→note_to_textbook模式B 融合成预习 v2
+                               （预习组 {topic}_预习_* 与主材料组 {topic}_* 全程分离、各自归档，分别喂能力画像；结构与主路对称）
   └ 主教材生成路 source_to_textbook.md → to_tex.md：收料 → 结构化主教材 v1（阅读底本；可选，密集/分散源才生成）
         │
 qa_note.md                 随文：读主教材 v1（或收料）边读边 QA，落单文件到 {source}_qa/  status: reading
@@ -87,8 +87,8 @@ topic_hub.md               枢纽：obsidian MOC，frontmatter 状态机 + Datav
 4. **宏观拆分成 DAG**（`topic_map.md`）：周计划退化为切片。
 5. **obsidian 枢纽用状态机**（`topic_hub.md`）：多主题并行可视化、可恢复。
 6. **阶段式背景回填**（`background_update.md`）：每完成一个主题，追加新增能力到**背景文件**（`$PERSONAL_BACKGROUND`）的知识资产台账，闭合"差集读背景→学完写回背景"的唯一反馈环，下次读前更精准。
-7. **编辑层 / 渲染层解耦**（`to_tex.md` 上提为通用渲染层）：把"怎么组织某类素材"（编辑层：`note_to_textbook.md` 笔记路、`prereq_to_textbook.md` 预习路）与"怎么渲染成有教科书味的 .tex"（渲染层：`tool_prompts/to_tex.md`）分开。渲染层只有一份、来源无关，教科书味标准也统一收归于此；新增来源只需加一份薄编辑层，复用同一渲染层。预习路据此从"差集脚手架"长出可选的"预习教材"旁支。
+7. **编辑层 / 渲染层解耦**（`to_tex.md` 上提为通用渲染层）：把"怎么组织某类素材"（编辑层，**共三层**：`prereq_to_textbook.md` 预习路、`source_to_textbook.md` 主教材生成路、`note_to_textbook.md` 成稿/融合路）与"怎么渲染成有教科书味的 .tex"（渲染层：`tool_prompts/to_tex.md`）分开。渲染层只有一份、来源无关，教科书味标准也统一收归于此；新增来源只需加一份薄编辑层，复用同一渲染层（见设计要点 11）。
 8. **机械搬运下沉脚本 / QA 单文件化**（`qa_note.md` + `qa_to_archive.md` + `scripts/qa_archive.py`）：把"重排归档"从 LLM 的生成式搬运改成"LLM 出编排表、脚本字节级搬运 + 哈希校验"。每个 QA 切成带 front-matter 的独立文件，机器验证字段（`id`/`content_hash`，LLM 只读）与导航字段（`summary`/`questions`…，LLM 可写）严格分离，正文保真。LLM 拿到的是理解与编排能力，工程锁死的是"改原文"这一最危险失败模式。
 9. **补全 `collect` 缺环 / 资料收集**（`source_selection.md`）：早期 pipeline 默认"材料是给定的"，差集公式的 `S_need` 靠通读材料抽——可一旦从 `topic_map` 拆出 theme，材料变成"待获取"，`S_need` 无从抽、差集链断在起点。新增 `source_selection.md` 把"主题 → 确定的、范围可控的资料清单"补上（服务 objective、按 `align` 降级取材、范围裁剪对抗通读），恰好填上 `topic_hub` 状态机里早就预留却一直空着的 `collect` 槽位（状态机比 prompt 集更完整，是当初设计直觉预留的位置）。差集链由此在"材料待获取"时也能闭合：`source_selection` 出确定材料 → `prereq` 抽 `S_need` → 减 `S_have` → 出前置。
 10. **预习组 / 主材料组两段分离**（`prereq_to_textbook.md` + `qa_note.md` + `background_update.md`）：预习内容是**跨领域基础底子、非完整 topic**，故"预习教材 + 预习QA"自成一组（`{topic}_预习_*` 命名空间），与"主材料 + 主QA"组（`{topic}_*`）**全程不并入同一份归档**——否则跨域基础会污染 topic 归档。两组**分别回填能力画像**：预习组 → 跨域基础底子（标归属领域、惠及多 topic 差集），主组 → topic 专属。让台账分得清"底子 vs 专精"，这正是 topic 内分两段的动机。
-11. **主教材 v1→QA→v2 与三编辑层对称**（`source_to_textbook.md` + `note_to_textbook.md` 两模式）：补上「收料 → 结构化主教材 v1（阅读底本）」这一步，使三条编辑层对称——预习路（差集→预习教材）、主教材生成路（收料→v1）、成稿/融合路（QA→融合进 v1→v2），都喂同一渲染层 `to_tex.md`。`note_to_textbook` 因此分两模式：**无 v1 时从 QA 从零建**（QA 优先路），**有 v1 时把 QA 原地融合成 v2**（教材优先路）。两种顺序按源类型择一：密集/分散源走教材优先，单一可直读源走 QA 优先。这把"对同一主题最多三份产物"塌缩成"预习册 + 一本会进化的主教材"。
+11. **主教材 v1→QA→v2 与三编辑层对称**（`source_to_textbook.md` + `note_to_textbook.md` 两模式）：补上「收料 → 结构化主教材 v1（阅读底本）」这一步，使三条编辑层对称——预习路（差集→预习教材）、主教材生成路（收料→v1）、成稿/融合路（QA→融合进 v1→v2），都喂同一渲染层 `to_tex.md`。`note_to_textbook` 因此分两模式：**无 v1 时从 QA 从零建**（QA 优先路），**有 v1 时把 QA 原地融合成 v2**（教材优先路）。两种顺序按源类型择一：密集/分散源走教材优先，单一可直读源走 QA 优先。模式 B 对**预习教材与主教材同样适用**（预习路也是 v1→QA→预习 v2，与主路对称）。这把"对同一主题最多三份产物"塌缩成"一本会进化的预习册 + 一本会进化的主教材"。
