@@ -1,5 +1,9 @@
 ---
 name: note-to-textbook
+stage: B/textbook
+when: 把 QA 内化成/融合进教科书（模式A 从零 / 模式B 融 v2）
+reads: 素材归档 或 教材 v1 + to_tex.md
+writes: {topic}_Textbook.tex(v2)
 description: 编辑层「笔记这一路」：把「已主题归档、但仍非结构化的原始 note」组织成图文并茂、逻辑顺畅的教科书式内容，再交通用渲染层 tool_prompts/to_tex.md 渲染为可编译 .tex。当用户要把一份整理过的笔记（问答痕迹 / 三段式素材 / 逻辑骨架已在但行文未成稿）转写成可复习的 .tex 教材时使用。本文件只规定「笔记这类来源怎么改写、改写到什么程度、按什么边界推进」；LaTeX 样式、画图、编译规范与通用「教科书味」写作标准都在 tool_prompts/to_tex.md，两者一起作为上下文使用。
 ---
 

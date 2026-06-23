@@ -9,7 +9,7 @@
 
 学习方法 pipeline（prompt 规范 + 脚本）在环境变量 `$LEARNING_PIPELINE` 指向的仓库，**不在本目录**。
 
-**动手前先读 `$LEARNING_PIPELINE/README.md`**，按其中的工作流 A/B 推进；脚本统一用
+**动手前先读 `$LEARNING_PIPELINE/README.md`**，按其中的工作流 A/B 推进。**要跑某一步时，先读 `$LEARNING_PIPELINE/registry/REGISTRY.md` 速查表选定那一个 prompt、再读它的全文**（别全量读所有 prompt）。脚本统一用
 `python $env:LEARNING_PIPELINE\scripts\qa_archive.py ...` 调用。
 
 个人背景在 `$PERSONAL_BACKGROUND`（workspace 的 `background/` 目录，见 `$LEARNING_PIPELINE/background_db.md`）：`baseline.yaml` 基线 + `background.db`（`s_have` 台账 / `topics` 状态，由 `scripts/background.py` 读写）+ `WORK_LOG.md` 动态流水账。读前差集 `have-query`，学完 `have-add` 回填；周进度只进 `WORK_LOG.md`。

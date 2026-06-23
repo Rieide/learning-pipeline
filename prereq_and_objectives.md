@@ -1,5 +1,9 @@
 ---
 name: prereq-and-objectives
+stage: B/prereq
+when: 材料已确定，读正文前出前置差集 + 目标问题
+reads: 选定材料 + baseline.yaml + s_have(have-query)
+writes: {source}_prereq.md
 description: 单主题深读的「读前准备」环节：为一份阅读材料（论文/源码/教材）生成「前置知识文档 + 阅读目标问题」。前置知识 = (材料所需工具/概念集合) − (已具备集合 S_have) + 少量桥接补充；S_have 从结构化背景取（baseline.yaml 基线 + background.py have-query 按领域查 s_have 表，见 background_db.md）。阅读目标 = 3–5 个"读完要能回答"的核心问题。用于把被动阅读变成带靶子的主动阅读，并按"读前置→读正文"安排顺序。是 qa_note.md 之前的一步。
 ---
 

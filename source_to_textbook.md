@@ -1,5 +1,9 @@
 ---
 name: source-to-textbook
+stage: B/draft_textbook(可选)
+when: 源密集/分散，先 consolidate 成主教材 v1 阅读底本
+reads: {topic}_sources + 真实源 + to_tex.md
+writes: {topic}_Textbook.tex(v1)
 description: 编辑层「主教材这一路 · v1 生成」：把 source_selection.md 收敛的「确定的、范围可控的资料清单」（收料）组织成一本结构化主教材 v1——它既是比分散原始文档更好读的【主要阅读材料】，也是后续 QA 融合的【底本】；再交通用渲染层 tool_prompts/to_tex.md 渲染为可编译 .tex。与「预习路」prereq_to_textbook.md、「成稿/融合路」note_to_textbook.md 并列三编辑层、共用同一渲染层。本文件只管"把收料组织成主教材内容"；LaTeX 样式/编译/通用教科书味标准见 to_tex.md。可选步骤：源密集/分散、值得 consolidate 才生成 v1；可直读的参考文档可跳过、直接对收料 QA（走 QA 优先路）。
 ---
 

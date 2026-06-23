@@ -1,5 +1,9 @@
 ---
 name: learning-qa-note-append
+stage: B/reading
+when: 边读材料边问答，每个 QA 落成单文件
+reads: 阅读材料(主教材 v1 或收料)
+writes: {source}_qa/QA_*.md（经 qa_archive.py new/finalize）
 description: 学习随文问答的产出规范：把用户问题原文 + 助手最终回答原文，落成阅读材料同级 {source}_qa/ 文件夹下、每个 QA 一个独立 .md 文件，带 YAML front-matter（机器验证字段 id/content_hash 由脚本管、LLM 只读；导航字段 title/summary/questions/chapter_hint/related 由 LLM 写）。正文区是纯净原文、禁止任何生成式改写，content_hash 由 qa_archive.py finalize 锁定。下游归档(qa_to_archive.md)只读导航字段做编排、由脚本字节级搬运正文，从根上杜绝"LLM 机械搬运改字"的幻觉。必要时回答中可用 Mermaid，随回答原样进入正文区。
 ---
 

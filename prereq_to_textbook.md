@@ -1,5 +1,9 @@
 ---
 name: prereq-to-textbook
+stage: B/prereq·预习教材(可选)
+when: 要把前置差集扩写成可独立学一遍的预习小册
+reads: {source}_prereq.md + to_tex.md
+writes: {topic}_预习_Textbook.tex
 description: 编辑层「预习这一路」：把 prereq_and_objectives.md 产出的「前置知识差集脚手架」（{source}_prereq.md）扩写成一份"读正文前能独立学一遍的预习小册子"内容，再交通用渲染层 tool_prompts/to_tex.md 渲染为可编译 .tex。与「笔记这一路」note_to_textbook.md 对称。核心是两个正交控制轴：学习范围守最小脚手架（不外扩成第二篇论文），讲解深度按重要性分流（基础概念点到为止，理解论文关键洞察的重要前置必须按逻辑链展开+联动论文对应关键点）。本文件只管"把差集组织成预习内容"；LaTeX 样式/编译/通用「教科书味」写作标准见 tool_prompts/to_tex.md。
 ---
 

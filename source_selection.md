@@ -1,5 +1,9 @@
 ---
 name: source-selection
+stage: B/collect
+when: 有 theme、材料待获取，要定确定且范围可控的资料清单
+reads: topics 节点(topic-show) + s_have(have-query)
+writes: {topic}_sources.md + topics.source
 description: 「资料收集」环节，填补 topic_hub 状态机里早就预留、却一直没有 prompt 的 collect 槽位。输入：topics 表里的该 theme 节点（topic-show，带 objective / roi / align / source_hint）+ 背景 S_have（have-query）。输出：一份「确定的、范围可控的资料清单」{topic}_sources.md，每条标注类型 / 选它的理由（对齐 objective 哪部分）/ 范围裁剪（读哪几节·哪几页·哪几个函数，对抗"通读"）/ 优先级 + 可砍。硬边界：服务 objective 不做综述式铺料、按 align 降级取材、用 S_have 剔冗余；产出物正是 prereq_and_objectives.md 抽 S_need 的输入。把「主题」变成「一份确定材料」，让差集链在材料待获取时也能闭合。
 ---
 

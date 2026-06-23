@@ -1,5 +1,9 @@
 ---
 name: qa-to-archive
+stage: B/archive
+when: QA 攒够，归档成原文素材文档
+reads: {source}_qa/ 导航字段
+writes: {topic}_arrangement.yaml → {topic}_原文素材归档.md（assemble）
 description: 把 {source}_qa/ 里的单文件 QA 归档成「原文素材归档」文档的规范——但机械搬运彻底交给脚本。LLM 只读每个 QA 的导航字段(summary/questions/chapter_hint)，输出一张编排表(YAML：章节骨架 outline + 每个 QA id 归到哪个标题、排第几 placement + 去重 drop/dup_of)；正文由 qa_archive.py assemble 按 ID 字节级从源文件搬运拼接，并做哈希守恒/计数守恒/id 唯一性校验。LLM 全程不碰正文、不碰 content_hash，从工程上锁死"重排时改字"的幻觉。它是 qa_note.md 与 note_to_textbook.md 之间的一环，产出物正是 note_to_textbook.md 期望的输入。
 ---
 

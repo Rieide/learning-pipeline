@@ -1,5 +1,9 @@
 ---
 name: background-update
+stage: B/done(主题驱动)
+when: 一个主题收尾，把新增能力写回台账
+reads: 教材 / 复习卡 / 目标问题
+writes: s_have(have-add) + topic-status done
 description: 单主题深读流水线收尾后，把"这一轮新掌握了什么"用 background.py have-add 幂等写进结构化台账（SQLite 的 s_have 表，按领域 key、FK→topic；见 background_db.md），让下次 prereq 差集解析更准。强调写成"可被差集相减的颗粒度"（具体能力/概念，而非"学了某主题"）、按领域归位、标 main/prereq 组、把"仍存疑/未深入"记为 status: shaky 负向知识；幂等 upsert 天然防主题/周复盘双入口重复计入。收尾 background.py topic-status <topic> done。
 ---
 

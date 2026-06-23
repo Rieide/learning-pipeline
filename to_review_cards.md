@@ -1,5 +1,9 @@
 ---
 name: to-review-cards
+stage: B/review
+when: 主题收尾，把已学材料转成间隔复习卡
+reads: {source}_qa + 教材 warnbox/keybox + 目标问题
+writes: {topic}_review.md
 description: 把已沉淀的学习材料（{source}_qa/ 里单文件 QA 的问答、教科书 .tex 里的 warnbox/keybox、阅读目标问题）转成「间隔复习卡」的规范。产出 Markdown 表格形式的问/答卡，可在 obsidian 里盖住答案列自测。目的：给以编码为主的流水线补上「主动提取 + 间隔重复」回路，对抗"读着顺=已掌握"的流畅性幻觉。复用已有材料，零额外采集成本。
 ---
 

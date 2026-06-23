@@ -1,5 +1,9 @@
 ---
 name: to-tex
+stage: 工具/渲染
+when: 已组织好的中文内容渲染成可编译教科书 .tex
+reads: 已组织好的内容
+writes: .tex（预导言/TikZ/编译自检）
 description: 通用「已组织好的中文内容 → 教科书式 .tex」的渲染层规范：可直接复制的预导言（ctexbook + XeLaTeX + 一套固定 TikZ 样式）、画图避坑、编译自检，以及通用「教科书味」写作标准。输入来源无关——既可来自笔记编辑层（note_to_textbook.md），也可来自预习编辑层（prereq_to_textbook.md），或任何其它已组织好的 markdown 内容。当用户要把一份已组织好的内容渲染成 .tex 教材/导读、或新增/重绘 TikZ 图时使用。本文件是工具 prompt 模板（非 skill），需要时手动整份贴给 Claude 当上下文——目标是「只读本文件即可拿到全部样式与渲染规范」，无需再去读样例 .tex 文件。
 ---
 

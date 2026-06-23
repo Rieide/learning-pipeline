@@ -1,5 +1,9 @@
 ---
 name: background-db
+stage: 契约/background
+when: 凡读写 S_have/topic —— 背景 DB 的 schema/CLI 契约
+reads: —
+writes: —（契约层，被多个 prompt 引用）
 description: 个人背景「结构化台账」的权威契约（schema + CLI + 约定）。把 topic 状态/元数据与 S_have 知识资产从非结构化 markdown 升级为 SQLite（topics 主键 + s_have 按领域 FK→topic + changelog），由机械层脚本 scripts/background.py 读写/校验/渲染。差集只读相关领域（治 #2 全量重读），回填按 (domain,id) 幂等去重（治 #6 双入口重复），能力现状表与 obsidian hub 都退化为「由 DB 生成的视图」。个人基线（身份/出身/入职基线锚点）单独用 baseline.yaml 手编、不进 DB。本文件是被 prereq/background_update/weekly_review/topic_map/topic_hub 共同引用的契约层（类比渲染层 to_tex.md），它们只描述「语义怎么判断」，读写格式统一看这里。
 ---
 

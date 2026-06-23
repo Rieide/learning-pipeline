@@ -1,5 +1,9 @@
 ---
 name: weekly-review
+stage: 时间驱动
+when: 按周/里程碑，把一段时间的工作叙事沉淀
+reads: 工作叙事
+writes: WORK_LOG.md + s_have(have-add)
 description: 时间驱动的周复盘回填入口。把"本周/本里程碑的工作叙事"（做了什么/卡在哪/学到什么/产出结论）分流写回：详细流水账写 WORK_LOG.md，真正内化的能力用 background.py have-add 幂等写进 s_have 表（按领域 key）。与 background_update.md 互补：那是主题驱动（一个深读主题收尾，输入是教科书/复习卡/目标问题），本入口是时间驱动（按周/里程碑，输入是原始工作叙事）。两入口共写同一 s_have 表，幂等 upsert 天然防重复计入（#6）。台账写法/字段/硬边界一律复用 background_update.md + background_db.md，本文件只补"周复盘特有"的部分。
 ---
 

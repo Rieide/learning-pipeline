@@ -1,5 +1,9 @@
 ---
 name: topic-hub-view
+stage: 视图/hub
+when: 看/生成某主题的 obsidian 枢纽视图
+reads: topics + s_have 表
+writes: {topic}_hub.md（topic-render 生成视图）
 description: 单主题的 obsidian 汇总枢纽（MOC）——现在是「由 topics 表渲染生成的视图」，不再手维护。真相源是 background.db 的 topics 表（topic 主键 + status 状态机 + roi/objective/deps/source_hint/source），由 background.py topic-render 生成 {topic}_hub.md（frontmatter + 各产物链接 + 本 topic 贡献的 S_have），由 background.py board 生成全主题进度看板。topic_map.md 用 topic-upsert 建节点、各深读步用 topic-status 推进、收尾 background_update.md 置 done。本文件定义视图怎么生成/怎么读、状态机流转（含 v1 生成态 draft_textbook）、命名约定（topic 主键 vs source 随文前缀）。schema/CLI 见 background_db.md。
 ---
 

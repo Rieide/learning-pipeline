@@ -1,5 +1,9 @@
 ---
 name: topic-map
+stage: A/宏观
+when: 把一个领域/大目标拆成有依赖的子主题地图
+reads: 领域目标 + baseline.yaml + s_have
+writes: topics 表(topic-upsert) + Mermaid DAG
 description: 把一个领域/学习目标拆成「子主题 DAG」的宏观拆分工作流（独立于单主题深读流程）。当用户要把一大块要学的东西（如「看懂 prediction 主链路并能判断好坏」）规划成有依赖、有优先级、可并行推进的主题地图时使用。产出一张 Mermaid 依赖图 + 每个子主题写进 topics 表（background.py topic-upsert，status: planned；真相源见 background_db.md）。周/日计划只是从这张图上切一片，不在本文件范围内。
 ---
 
