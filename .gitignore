@@ -24,3 +24,10 @@ __pycache__/
 !source_to_textbook.md
 !topic_hub.md
 !weekly_review.md
+
+# 个人背景结构化存储（住在 workspace 的 background/ 目录，绝不进 pipeline 仓库）；见 background_db.md
+# 注意：工具 background_db.md / scripts/background.py 是 .md/.py，不被下面规则匹配，照常入库
+background.db
+*.db
+baseline.yaml
+WORK_LOG.md

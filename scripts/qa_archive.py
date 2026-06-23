@@ -5,6 +5,7 @@
 正文的搬运与一切保真校验都由本脚本 + 文件系统完成——不需要语言理解，可 100% 复现。
 
 子命令
+  new       原子分配下一个 QA id（最大+1）并创建骨架文件；O_CREAT|O_EXCL 绝不覆盖已存在文件
   finalize  对 QA 文件夹里每个 .md 计算 body 哈希，写入 content_hash + status: final（幂等）
   verify    重哈希比对 + id==文件名 + id 唯一性；任一失败非零退出
   assemble  按编排表(YAML) 拼接 {topic}_原文素材归档.md，并做计数守恒/唯一性/哈希校验
@@ -14,9 +15,12 @@
   - content_hash 只覆盖 body 区(front-matter 之后)，对 body 做确定性归一(换行→LF + 整体 strip)后哈希，
     因此 LLM 改 front-matter 的导航字段不会破坏保真链。
   - id == 文件名主体；id 唯一性由文件系统(文件名不可重复)天然保证，verify 复核 id 字段与文件名一致。
+  - id 的"取号+建文件"也下沉到本脚本(new)：O_CREAT|O_EXCL 原子占位，杜绝 LLM 数错号覆盖旧 QA
+    （那是 verify 抓不到、不可恢复的失败）；LLM 不再手动取号/拼文件名。
   - assemble 的正文一律按 ID 从源文件取、字节级复制；LLM 全程不碰 body。
 
 用法示例
+  python qa_archive.py new       SIMPL/SIMPL_qa            # 原子分配下一个 id 并建骨架
   python qa_archive.py finalize  SIMPL/SIMPL_qa
   python qa_archive.py verify    SIMPL/SIMPL_qa
   python qa_archive.py assemble  SIMPL/SIMPL_qa --plan SIMPL/SIMPL_arrangement.yaml \\
@@ -26,6 +30,8 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import os
+import re
 import sys
 from collections import defaultdict
 from pathlib import Path
@@ -91,6 +97,75 @@ def write_text(path: Path, text: str):
 
 def qa_files(folder: Path):
     return sorted(p for p in folder.glob("*.md") if p.is_file())
+
+
+# ---------- new：原子分配下一个 QA id 并创建骨架（绝不覆盖）----------
+
+_QA_NUM = re.compile(r"QA_(\d+)$")
+
+_SKELETON = """\
+---
+# ── 机器验证字段（脚本写/验，LLM 只读，禁改）──
+id: {id}
+content_hash:
+source: {source}
+status: draft
+# ── 导航字段（LLM 写）──
+title:
+summary:
+questions: []
+chapter_hint:
+related: []
+---
+## Q
+
+## A
+"""
+
+
+def _next_qa_index(folder: Path) -> int:
+    mx = 0
+    for p in folder.glob("QA_*.md"):
+        m = _QA_NUM.match(p.stem)
+        if m:
+            mx = max(mx, int(m.group(1)))
+    return mx + 1
+
+
+def cmd_new(folder: Path, source: str | None = None, count: int = 1) -> int:
+    """原子分配下一个（或多个）QA id 并落骨架文件。
+
+    取号(最大+1) + 建文件这一纯机械步从 LLM 下沉到此：用 O_CREAT|O_EXCL 创建，
+    若目标名已存在则跳到下一号，绝不覆盖——堵死"LLM 数错号→覆盖旧 QA"这个 verify
+    也抓不到、不可恢复的失败模式。LLM 只需把 Q/A 填进脚本生成的文件，再 finalize。
+    """
+    folder.mkdir(parents=True, exist_ok=True)
+    if not source:
+        name = folder.name
+        source = name[:-3] if name.endswith("_qa") else name
+    n = _next_qa_index(folder)
+    created, guard = [], 0
+    while len(created) < count:
+        guard += 1
+        if guard > count + 10000:
+            print("  ✗ 连续分配失败（目录状态异常？）", file=sys.stderr)
+            return 1
+        qid = f"QA_{n:04d}"
+        path = folder / f"{qid}.md"
+        try:
+            fd = os.open(path, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o644)
+        except FileExistsError:
+            n += 1            # 该号已被占用 → 跳过，绝不覆盖
+            continue
+        os.close(fd)          # O_EXCL 已原子占位；正文用 write_text 强制 LF 写入
+        write_text(path, _SKELETON.format(id=qid, source=source))
+        created.append(qid)
+        n += 1
+    for qid in created:
+        print(f"  ✓ 预留 {qid} → {folder / (qid + '.md')}")
+    print(f"[new] 原子分配 {len(created)} 个 id（O_EXCL，绝不覆盖已存在文件）｜source={source}")
+    print("      下一步：把 Q/A 原文填进新文件的 ## Q / ## A，再跑 finalize 锁正文。")
+    return 0
 
 
 # ---------- finalize ----------
@@ -265,6 +340,11 @@ def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description="QA 归档的机械搬运/校验层（保真，零幻觉）")
     sub = ap.add_subparsers(dest="cmd", required=True)
 
+    p = sub.add_parser("new", help="原子分配下一个 QA id 并创建骨架文件（O_EXCL，绝不覆盖）")
+    p.add_argument("folder", type=Path)
+    p.add_argument("--source", default=None, help="source 字段；默认由文件夹名去 _qa 推断")
+    p.add_argument("--count", type=int, default=1, help="一次分配多个连续 id（默认 1）")
+
     p = sub.add_parser("finalize", help="计算并写入 content_hash + status:final（幂等）")
     p.add_argument("folder", type=Path)
     p.add_argument("--force", action="store_true", help="对已 final 但正文改过的文件重新定稿")
@@ -278,6 +358,8 @@ def main(argv=None) -> int:
     p.add_argument("--out", type=Path, required=True, help="输出的 {topic}_原文素材归档.md")
 
     args = ap.parse_args(argv)
+    if args.cmd == "new":
+        return cmd_new(args.folder, args.source, args.count)
     if args.cmd == "finalize":
         return cmd_finalize(args.folder, args.force)
     if args.cmd == "verify":

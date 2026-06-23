@@ -12,7 +12,6 @@
 **动手前先读 `$LEARNING_PIPELINE/README.md`**，按其中的工作流 A/B 推进；脚本统一用
 `python $env:LEARNING_PIPELINE\scripts\qa_archive.py ...` 调用。
 
-个人背景稳定档案（含 `S_have` 知识资产台账）在 `$PERSONAL_BACKGROUND`：读前差集读它、学完台账回填写它。
-与它同目录的 `WORK_LOG.md` 放周进度/切入点等动态流水账，工作进度回填写这里，不污染稳定档案。
+个人背景在 `$PERSONAL_BACKGROUND`（workspace 的 `background/` 目录，见 `$LEARNING_PIPELINE/background_db.md`）：`baseline.yaml` 基线 + `background.db`（`s_have` 台账 / `topics` 状态，由 `scripts/background.py` 读写）+ `WORK_LOG.md` 动态流水账。读前差集 `have-query`，学完 `have-add` 回填；周进度只进 `WORK_LOG.md`。
 
-周复盘时直接说「按 `$LEARNING_PIPELINE/weekly_review.md` 做周复盘回填」，把本周工作叙事交给它自动分流更新这两个文档。
+周复盘时直接说「按 `$LEARNING_PIPELINE/weekly_review.md` 做周复盘回填」，把本周工作叙事交给它自动分流更新。

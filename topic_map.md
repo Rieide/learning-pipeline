@@ -1,19 +1,19 @@
 ---
 name: topic-map
-description: 把一个领域/学习目标拆成「子主题 DAG」的宏观拆分工作流（独立于单主题深读流程）。当用户要把一大块要学的东西（如「看懂 prediction 主链路并能判断好坏」）规划成有依赖、有优先级、可并行推进的主题地图时使用。产出一张 Mermaid 依赖图 + 每个子主题在 obsidian 枢纽里的占位条目（带 frontmatter，status: planned）。周/日计划只是从这张图上切一片，不在本文件范围内。
+description: 把一个领域/学习目标拆成「子主题 DAG」的宏观拆分工作流（独立于单主题深读流程）。当用户要把一大块要学的东西（如「看懂 prediction 主链路并能判断好坏」）规划成有依赖、有优先级、可并行推进的主题地图时使用。产出一张 Mermaid 依赖图 + 每个子主题写进 topics 表（background.py topic-upsert，status: planned；真相源见 background_db.md）。周/日计划只是从这张图上切一片，不在本文件范围内。
 ---
 
 # 宏观拆分：领域/目标 → 子主题 DAG
 
 > **定位**：这是「学什么、按什么依赖学、先学哪块」的**宏观规划工作流**，独立于单主题深读流程（见 `source_selection.md` → `prereq_and_objectives.md` → `qa_note.md` → `qa_to_archive.md` → `note_to_textbook.md` → `to_review_cards.md`）。
-> **配套**：产出的占位条目应符合 `topic_hub.md` 的 frontmatter 约定，便于 Dataview 汇总。
+> **配套**：每个节点用 `background.py topic-upsert` 写进 `topics` 表（真相源；schema 见 `background_db.md`）；hub 视图由 `topic-render` 生成、总览看板由 `board` 生成——不再手写占位 hub。
 > **衔接 collect**：本步拆出的 theme 是"目标明确但材料待获取"。每个节点带一个 `source_hint`（候选材料方向种子），作为下游 `source_selection.md`（`collect` 步）的输入——由它把 theme 收敛成"确定的、范围可控的资料清单"，再进 `prereq_and_objectives.md` 抽 `S_need`。
 
 ---
 
 ## 0. 目标（一句话）
 
-把一个**大而模糊的学习目标**，拆成一张**有依赖、有 ROI、可并行**的子主题地图，让"先学哪块、哪块能并行、哪块可砍"一目了然，并直接生成可进入深读流程的占位条目。
+把一个**大而模糊的学习目标**，拆成一张**有依赖、有 ROI、可并行**的子主题地图，让"先学哪块、哪块能并行、哪块可砍"一目了然，并直接写进 `topics` 表（`topic-upsert`，可进入深读流程）。
 
 **两个不可动摇的落点：**
 - **拆成 DAG，不是拆成线性清单**：节点之间标清依赖（谁是谁的前置），而不是排成一条流水。线性周计划是这张图的"切片"，不是它本身。
@@ -24,7 +24,7 @@ description: 把一个领域/学习目标拆成「子主题 DAG」的宏观拆�
 ## 1. 输入
 
 - 一个领域 / 学习目标（必填）。
-- 背景文件（路径由环境变量 `$PERSONAL_BACKGROUND` 指定；用于判断已具备 vs 需补、对齐阶段定位）。
+- 背景 `S_have`（`baseline.yaml` 基线 + `s_have` 表，`background.py have-query`；用于判断已具备 vs 需补、对齐阶段定位）。
 - 可选：mentor 路线、时间预算、里程碑（如中期汇报时点）。
 
 ---
@@ -65,9 +65,19 @@ flowchart LR
 
 > 用实线表示"硬前置"，虚线表示"软参考/复习性前置"。
 
-### 3.3 obsidian 占位条目（每个节点一份）
+### 3.3 写入 topic 库（每个节点一条 topic-upsert）
 
-按 `topic_hub.md` 模板生成骨架，`status: planned`，填好 `topic / tags / deps / roi / objective / source_hint`，其余区块留空待深读流程填充（`source_hint` 给 `collect` 步当种子）。
+每个节点落成一条命令写进 `topics` 表（不再手写 hub 文件；hub 是后续 `topic-render` 的视图）：
+
+```powershell
+python $env:LEARNING_PIPELINE\scripts\background.py topic-upsert SIMPL `
+  --status planned --roi high --objective "讲清对称/instance-centric 表示" `
+  --align "只到接口级，不深啃训练侧" `
+  --deps VectorNet,prediction-proto `
+  --source-hint "arXiv:2402.02519, modules/prediction 下 simpl_*" --tags prediction,motion-forecasting
+```
+
+`source` 字段等 `source_selection.md` 确定主材料后再 `topic-upsert --source <主材料名>` 补。字段含义见 `background_db.md §2`；**`align` 是下游 `source_selection.md` 判定取材深度的依据，务必填**。
 
 ---
 

@@ -43,11 +43,14 @@ description: 学习随文问答的产出规范：把用户问题原文 + 助手�
 
 **文件夹名**：`{source}_qa/`（`{source}` = 材料文件名去扩展名的主体；材料是目录则用目录名）。
 
-> **预习组 vs 主组（同一 topic 内两段分离）**：「预习教材」（`prereq_to_textbook.md` 产出）与「主材料」是**两个不同的 `{source}`**，因此天然落到**两个不同的 `{source}_qa/`**——预习组用 `{topic}_预习_*` 命名空间（读预习教材时同步 QA），主组用 `{topic}_*`。**两组绝不并入同一份归档**：预习是跨领域基础底子、非完整 topic，分离才能让下游 `background_update.md` 的能力画像分清"基础底子 vs topic 专属"。
+> **预习组 vs 主组（同一 topic 内两段分离）**：「预习教材」（`prereq_to_textbook.md` 产出）与「主材料」是**两个不同的 `{source}`**，因此天然落到**两个不同的 `{source}_qa/`**——预习组用 `{topic}_预习` 前缀（即 `{topic}_预习_qa/`），主组用主材料的 `{source}`（= `topics.source`，命名约定见 `background_db.md §4`）。**两组绝不并入同一份归档**：预习是跨领域基础底子、非完整 topic，分离才能让下游 `background_update.md` 的能力画像分清"基础底子 vs topic 专属"（`have-add --group prereq|main`）。
 
-**单个 QA 文件名**：`QA_NNNN.md`（4 位零填充，如 `QA_0007.md`）。
-- 新建时取文件夹内现有 `QA_*.md` 的**最大编号 + 1**。
-- **绝不复用/覆盖已存在的文件名**（覆盖会悄悄毁掉旧 QA，且 verify 抓不到）。
+**单个 QA 文件名**：`QA_NNNN.md`（4 位零填充，如 `QA_0007.md`）。**取号 + 建文件已下沉到脚本，LLM 不再手动拼文件名 / 数编号**：
+- 新建一条 QA 先跑 `qa_archive.py new`，它原子扫描文件夹、取**最大编号 + 1**、用 `O_CREAT|O_EXCL` 创建骨架文件（**绝不覆盖已存在文件**），并写好 `id`/`source`/`status: draft`：
+  ```powershell
+  python $env:LEARNING_PIPELINE\scripts\qa_archive.py new <材料目录>\{source}_qa
+  ```
+- 然后只把 Q/A 原文填进它生成的 `## Q`/`## A`。**为什么下沉**：「数错号 → 覆盖旧 QA」是 `verify` 也抓不到、不可恢复的失败；交给脚本以 `O_EXCL` 占位后，从工程上不可能发生（与"正文哈希锁死"同一思路）。
 
 示例：
 ```text
@@ -65,7 +68,7 @@ QA 文件夹： E:\...\SIMPL\2402.02519v1_qa\
 ```md
 ---
 # ── 机器验证字段（脚本写/验，LLM 只读，禁改）──
-id: QA_0007            # = 文件名主体；新建时取现有最大编号 +1
+id: QA_0007            # = 文件名主体；由 qa_archive.py new 原子分配，LLM 只读
 content_hash:          # 留空！由 qa_archive.py finalize 写入，LLM 绝不填写/修改
 source: 2402.02519v1   # 来源材料 {source}
 status: draft          # 由 finalize 置为 final（正文随之锁定）
@@ -97,7 +100,7 @@ related: [<关联 QA id，如 QA_0003>]
 | 类别 | 字段 | 谁写 | LLM 权限 |
 |---|---|---|---|
 | **机器验证（保真）** | `content_hash` | `qa_archive.py finalize` | **只读，绝不填/改** |
-| **机器验证（保真）** | `id` | LLM 新建时按"最大+1"给一次（= 文件名）；之后只读 | 新建时写一次，之后只读 |
+| **机器验证（保真）** | `id` | `qa_archive.py new` 原子分配（= 文件名）；LLM 不写 | **只读**（取号 / 建文件都由脚本做） |
 | 控制 | `status` | finalize 置 final | 新建写 `draft`，之后只读 |
 | 导航 | `title`/`summary`/`questions`/`chapter_hint`/`related` | LLM | 可写、可后续修订（不破坏保真链） |
 
@@ -119,7 +122,7 @@ related: [<关联 QA id，如 QA_0003>]
 
 1. **识别 QA 文件夹**：从材料路径确定 `{source}_qa/`。
 2. **回答问题**：正常完成学习问答，必要时用公式/代码/图示。
-3. **落单文件**：取新 `id`（最大+1），写 front-matter——导航字段如实填、`content_hash` 留空、`status: draft`——正文区放纯净 `## Q`/`## A` 原文。
+3. **原子建档**：跑 `qa_archive.py new <材料目录>\{source}_qa` 分配 `id` 并落骨架（脚本已写好 `id`/`source`/`status: draft`、`content_hash` 留空）；再把导航字段如实填好、正文区填纯净 `## Q`/`## A` 原文。**不手动取号、不自己拼文件名。**
 4. **定稿锁哈希**（会话或批次收尾时）：
    ```powershell
    python $env:LEARNING_PIPELINE\scripts\qa_archive.py finalize <材料目录>\{source}_qa

@@ -1,6 +1,6 @@
 ---
 name: source-selection
-description: 「资料收集」环节，填补 topic_hub 状态机里早就预留、却一直没有 prompt 的 collect 槽位。输入：topic_map 拆出的某个 theme 节点（带 objective / roi / align / source_hint）+ 背景文件 $PERSONAL_BACKGROUND。输出：一份「确定的、范围可控的资料清单」{topic}_sources.md，每条标注类型 / 选它的理由（对齐 objective 哪部分）/ 范围裁剪（读哪几节·哪几页·哪几个函数，对抗"通读"）/ 优先级 + 可砍。硬边界：服务 objective 不做综述式铺料、按 align 降级取材、用 S_have 剔冗余；产出物正是 prereq_and_objectives.md 抽 S_need 的输入。把「主题」变成「一份确定材料」，让差集链在材料待获取时也能闭合。
+description: 「资料收集」环节，填补 topic_hub 状态机里早就预留、却一直没有 prompt 的 collect 槽位。输入：topics 表里的该 theme 节点（topic-show，带 objective / roi / align / source_hint）+ 背景 S_have（have-query）。输出：一份「确定的、范围可控的资料清单」{topic}_sources.md，每条标注类型 / 选它的理由（对齐 objective 哪部分）/ 范围裁剪（读哪几节·哪几页·哪几个函数，对抗"通读"）/ 优先级 + 可砍。硬边界：服务 objective 不做综述式铺料、按 align 降级取材、用 S_have 剔冗余；产出物正是 prereq_and_objectives.md 抽 S_need 的输入。把「主题」变成「一份确定材料」，让差集链在材料待获取时也能闭合。
 ---
 
 # 资料收集：theme → 确定的、范围可控的资料清单
@@ -22,10 +22,10 @@ description: 「资料收集」环节，填补 topic_hub 状态机里早就预�
 
 ## 1. 输入
 
-- **topic_map 的一个 theme 节点**：`topic` / `objective` / `roi` / `align` / `deps` / `source_hint`（候选材料方向的种子）。
-- **背景文件 `$PERSONAL_BACKGROUND`**：判断 `source_hint` 里哪些候选对作者是冗余的（已落在 `S_have` → 剔除或仅复习），哪些是真缺。
+- **topics 表里的该 theme 节点**（`background.py topic-show {topic}`）：`objective` / `roi` / `align` / `deps` / `source_hint`（候选材料方向的种子）。`align` 决定取材深度（§2.2）。
+- **背景 `S_have`**（`background.py have-query --domain <相关领域>`）：判断 `source_hint` 里哪些候选对作者是冗余的（已在 `S_have` → 剔除或仅复习），哪些是真缺。
 
-> `source_hint` 只是**方向种子**（"大概去哪类材料找"）；本步负责把它**确定到"具体哪一份 + 读哪一部分"**。
+> `source_hint` 只是**方向种子**（"大概去哪类材料找"）；本步负责把它**确定到"具体哪一份 + 读哪一部分"**，并把确定的主材料名 `topic-upsert --source` 回写 `topics` 表（供随文产物命名）。
 
 ---
 
@@ -36,7 +36,7 @@ description: 「资料收集」环节，填补 topic_hub 状态机里早就预�
    - 标"只认识 / 只对齐坐标系 / 只到接口"的 theme → 只取**概念地图 / 综述 / 接口文档**级材料，不取深啃材料；
    - 标"深入 / 精读"的 theme → 才取论文精读 / 源码精读级材料。
    降级直接决定取材深度，别给降级 theme 配深啃材料。
-3. **用 `S_have` 剔冗余**：`source_hint` 里作者已掌握的（落在背景文件 `S_have`）只标"已会，跳过 / 仅复习"，不作为新材料铺开。
+3. **用 `S_have` 剔冗余**：`source_hint` 里作者已掌握的（`have-query` 命中 `S_have`）只标"已会，跳过 / 仅复习"，不作为新材料铺开。
 4. **范围裁剪 > 数量**：宁可 3 条精确裁剪，不要 10 条整本。每条给"读哪几节 / 页 / 函数 + 预计篇幅"。
 5. **标优先级与可砍**：每条 `high / mid / low` + 可砍标记；进度落后时按此砍，保住覆盖 objective 主干的那几条。
 
@@ -82,9 +82,9 @@ description: 「资料收集」环节，填补 topic_hub 状态机里早就预�
 
 ## 5. 与上下游接口 / 状态机
 
-- **上游 `topic_map.md`**：消费 theme 节点的 `source_hint`（候选种子）+ `objective` / `align`。
+- **上游 `topic_map.md`**：从 `topics` 表（`topic-show`）取 theme 的 `source_hint`（候选种子）+ `objective` / `align`。
 - **下游 `prereq_and_objectives.md`**：其 §1"通读材料抽 `S_need`"中的"材料"= 本步产出的 `{topic}_sources.md` 选定且裁剪的材料；范围裁剪让 `S_need` 抽取也聚焦，不被无关章节稀释。
-- **状态机**：开工时 hub 置 `status: collect`；产出清单后交给 `prereq_and_objectives.md`（状态进 `prereq`）。在 hub「资料清单」区链接 `[[{topic}_sources]]`。
+- **状态机**：开工 `background.py topic-status {topic} collect`；确定主材料后 `background.py topic-upsert {topic} --source <主材料名>`（回写映射）；产出清单后 `topic-status {topic} prereq` 交给 `prereq_and_objectives.md`。清单命名 `{topic}_sources.md`（归档类用 `{topic}` 前缀）。
 
 ---
 

@@ -71,8 +71,9 @@ description: 把已沉淀的学习材料（{source}_qa/ 里单文件 QA 的问�
 
 ## 4. 间隔复习的轻量约定（可选，不强制工具）
 
-- 在 obsidian 枢纽 `review` 区记三次复习时点（如 +1d / +3d / +7d 当日勾选），靠 frontmatter/手记即可，不必上 Anki。
+- 在复习卡文件 `{topic}_review.md` 顶部记三次复习时点（+1d / +3d / +7d 当日勾选）——它是**手写文件**、不会被 DB 渲染覆盖（hub 是生成视图，别往里记）。不必上 Anki。
 - 复习时把"想不起来/答错"的卡 `#` 记下，下一轮提到表格最前面。
+- 出完卡 `background.py topic-status {topic} review`（推进状态机）。
 
 ---
 

@@ -30,7 +30,7 @@ description: 编辑层「主教材这一路 · v1 生成」：把 source_selecti
 
 - `{topic}_sources.md`（`source_selection.md` 的产出：选定且裁剪过的收料清单 + objective 拆解）。
 - 各选定源的实际内容（按裁剪范围读：指定的节/页/函数/文档页）——**主教材内容必须 grounded 在这些真实源**，不靠记忆杜撰。
-- 背景文件（`$PERSONAL_BACKGROUND`）：差集已剔除 `S_have`，本步沿用，不重复讲作者已会的。
+- 背景 `S_have`（`baseline.yaml` 基线 + `s_have` 表，见 `background_db.md`）：差集已剔除 `S_have`，本步沿用，不重复讲作者已会的。
 
 ---
 
@@ -76,7 +76,7 @@ description: 编辑层「主教材这一路 · v1 生成」：把 source_selecti
 
 全部遵循 `tool_prompts/to_tex.md`，本文件不重复排版规范：
 - 通用「教科书味」写作标准见其 §6；预导言/TikZ/画图避坑见其 §1–§3；编译自检见其 §5（XeLaTeX 连两遍 + 查 `.log` + 确认 PDF）。
-- 产物命名：主教材 `{topic}_Textbook.tex`（**v1 与 v2 是同一文件的演进，不另起名**）；其随文 QA 落 `{topic}_qa/`。在 `topic_hub.md`「主材料组 / 最终产物」区链接。
+- 产物命名：主教材 `{topic}_Textbook.tex`（**v1 与 v2 是同一文件的演进，不另起名**；归档类用 `{topic}` 前缀）；其随文 QA 落 `{source}_qa/`（`{source}`=`topics.source`）。生成 v1 后 `background.py topic-status {topic} draft_textbook`；hub 链接由 `topic-render` 自动生成（见 `topic_hub.md`、`background_db.md §4`）。
 
 ---
 

@@ -1,26 +1,27 @@
 ---
 name: background-update
-description: 单主题深读流水线收尾后，把"这一轮新掌握了什么"以追加式 history 台账反馈回背景文件（路径由环境变量 $PERSONAL_BACKGROUND 指定），让下次 prereq 差集解析更准。强调追加不重写稳定事实，且更新要写成"可被差集相减的颗粒度"（具体能力/概念，而非"学了某主题"），并显式记录"仍存疑/未深入"项作为负向知识。是流程的闭环步：review → 本步 → status: done。
+description: 单主题深读流水线收尾后，把"这一轮新掌握了什么"用 background.py have-add 幂等写进结构化台账（SQLite 的 s_have 表，按领域 key、FK→topic；见 background_db.md），让下次 prereq 差集解析更准。强调写成"可被差集相减的颗粒度"（具体能力/概念，而非"学了某主题"）、按领域归位、标 main/prereq 组、把"仍存疑/未深入"记为 status: shaky 负向知识；幂等 upsert 天然防主题/周复盘双入口重复计入。收尾 background.py topic-status <topic> done。
 ---
 
 # 阶段式个人背景更新（流水线闭环）
 
-> **定位**：单主题深读流程的**最后一步**，在 `to_review_cards.md` 之后。把本轮学习产出反馈回**背景文件**（路径由环境变量 `$PERSONAL_BACKGROUND` 指定），喂养下一轮 `prereq_and_objectives.md` 的差集解析。
-> **为什么需要**：prereq 差集 = `S_need − S_have + S_bridge`，其中 `S_have` 读自背景文件。`S_have` 越新鲜、颗粒越细，差集越准、读前文档越不浪费篇幅。每完成一个主题就更新一次，是这条依赖的闭环。
+> **定位**：单主题深读流程的**最后一步**，在 `to_review_cards.md` 之后。把本轮学习产出写回**结构化台账**（`$PERSONAL_BACKGROUND/background.db` 的 `s_have` 表），喂养下一轮 `prereq_and_objectives.md` 的差集解析。**字段/枚举/CLI 一律见 `background_db.md`**，本文件只讲"语义怎么判断"。
+> **为什么需要**：prereq 差集 = `S_need − S_have + S_bridge`，其中 `S_have` 查自 `s_have` 表。`S_have` 越新鲜、颗粒越细、领域越全，差集越准。每完成一个主题就 `have-add` 一次，是这条依赖的闭环。
 
-> **两个落点文件（背景按变动频率拆分，回填时分清写哪个）**：
-> - **`$PERSONAL_BACKGROUND`**（稳定档案，指向 `PERSONAL_BACKGROUND.md`）：稳定信息 + **知识资产台账** + 变更记录。**S_have、台账、技能表、变更记录都写这里**——这是 prereq 差集要读的文件。
-> - **`WORK_LOG.md`**（动态日志，与 `$PERSONAL_BACKGROUND` **同目录**的兄弟文件）：周进度时间线、工作切入点、学习/补强计划等随时间变动的流水账。**"工作进度/TODO 勾选"写这里，不要写回稳定档案**（否则就退回到"工作区进度污染个人背景"的老问题）。
+> **三层存储（回填时分清写哪个，见 `background_db.md §1`）**：
+> - **`background.db` 的 `s_have` 表**：本步主战场——`have-add` 幂等写入"可被差集相减的能力"。**按 `(domain,id)` upsert 天然防重复计入**，与 `weekly_review.md` 共写同一能力也不双计（治 #6）。
+> - **`baseline.yaml`**（个人基线，手编 YAML）：身份/出身/入职基线锚点。**本步原则上不动**；确需证伪/升级稳定事实才显式改它。
+> - **`WORK_LOG.md`**（动态日志，同目录）：周进度/切入点/排障流水。**"工作进度/TODO 勾选"写这里，不写进 DB**（否则退回"进度污染背景"老问题）。
 
 ---
 
 ## 0. 目标（一句话）
 
-把刚完成的主题里**真正内化为能力的部分**，以**追加式台账**写回**背景文件**（`$PERSONAL_BACKGROUND`），使其成为下次差集解析的精确依据——既补"现在已会"，也记"仍存疑"。
+把刚完成的主题里**真正内化为能力的部分**，用 `background.py have-add` 幂等写进 `s_have` 表，使其成为下次差集解析的精确依据——既补"现在已会"（`mastered`），也记"仍存疑"（`shaky`）。
 
 **两个不可动摇的落点：**
-- **追加，不重写**：稳定事实区（身份、出身、底子）原则上不动；新内容追加到「知识资产台账」与「变更记录」。只有当某条稳定事实确实被证伪/升级时，才显式标注修改。
-- **写成可相减的颗粒度**：台账条目要用 `prereq_and_objectives.md` 能直接当作 `S_have` 相减的语言——**具体概念/方法/工程能力**，而非"学了 X 主题"这种粗粒度结论。
+- **幂等写，不手攒文本**：能力进 `s_have` 表（按领域 key），重复写同一 `(domain,id)` 是更新不是新增；`baseline.yaml` 的稳定事实（身份、出身、入职基线）原则上不动，确需证伪/升级才显式改。
+- **写成可相减的颗粒度**：每条 `--capability` 要用 `prereq` 能直接当 `S_have` 相减的语言——**具体概念/方法/工程能力**，而非"学了 X 主题"这种粗粒度结论。
 
 ---
 
@@ -35,56 +36,68 @@ description: 单主题深读流水线收尾后，把"这一轮新掌握了什么
 
 对照三处材料，抽出"现在比开始这个主题前多会了什么"：
 
-1. 该主题的**教科书 `.tex`**（主教材 v2 与/或预习教材 v2）与**素材归档**（主组 / 预习组各自的；讲透了哪些概念/推导）。
-2. 该主题的**复习卡**（主组 / 预习组各自的；哪些是真正要长期记住的关键概念/误区澄清）。
+1. 该主题的**教科书 `.tex`**（主教材 v2 与/或预习教材 v2）与**素材归档**（讲透了哪些概念/推导）。
+2. 该主题的**复习卡**（哪些是真正要长期记住的关键概念/误区澄清）。
 3. 该主题读前的**阅读目标问题**（哪些已能回答 = 已达成）。
 
-抽取时做**差分**：只记"相对开始前新增/纠正"的，已在背景文件里声明过的不重复写。
+抽取时做**差分**：只记"相对开始前新增/纠正"的。已声明过的即使重写也无害——`have-add` 幂等，同 `(domain,id)` 自动更新不新增。
 
-> **分组回填（预习组 vs 主组，服务能力画像）**：若本 topic 跑了「预习组」（`{topic}_预习_*`，见 `prereq_to_textbook.md` / `qa_note.md`），它的 S_have 是**跨领域基础底子**（如"进程内存模型""data race 定义""调试构建 -g/-O0"），**不是 topic 专属**——台账条目要**标注其归属领域**（systems / 并发 / 工具链…）并注明"可惠及未来多个 topic 的差集"，必要时刷新「能力现状表」对应的**基础行**（而非 topic 行）。「主材料组」（`{topic}_*`）的 S_have 才计为 **topic 专属**。两组分开记，正是 topic 内两段分离的目的：让能力画像分得清"底子 vs 专精"。
+> **分组回填（预习组 vs 主组，靠字段而非两张表区分）**：
+> - **主材料组**（`{topic}_*`）的 S_have = **topic 专属**：`have-add --group main --topic {topic} --domain <该 topic 所属领域>`。
+> - **预习组**（`{topic}_预习_*`，见 `prereq_to_textbook.md` / `qa_note.md`）的 S_have = **跨领域基础底子**（如"进程内存模型""data race 定义""-g/-O0 调试构建"）：`have-add --group prereq --topic {topic} --domain <该底子真正所属领域，如 systems / concurrency / toolchain>`。预习底子按**它自己的领域**归位（可惠及未来多个 topic 的差集），别塞进 topic 的主领域。
+> 两组靠 `--group` + `--domain` 自然分开，能力画像分得清"底子 vs 专精"——不再需要"基础行/topic 行"的人肉表格区分。
 
 ---
 
-## 3. 台账条目格式（追加到背景文件 `$PERSONAL_BACKGROUND` 的「知识资产台账」）
+## 3. 怎么写：一条能力 = 一次 have-add（字段见 `background_db.md §5`）
 
-```markdown
-### {topic}（完成于 YYYY-MM-DD｜流水线 done）
-- **新增已掌握**（→ 并入 S_have，下次差集视为"已会"，不再展开）：
-  - 概念/方法：<具体到可相减的点，如"对称/视角无关表示、相对位姿编码、instance-centric 消息传递">
-  - 工具/工程：<如"protobuf 生成类 repeated/mutable 用法、shared_ptr vs unique_ptr 所有权">
-- **仍存疑 / 未深入**（→ 下次差集**不要**默认已会；遇到要补 S_bridge）：
-  - <如"多线程 thread_pool 只认识、未深入；SIMPL 训练侧未读">
-- **心智模型变化**：<如"对场景向量化的直觉从 raster 迁移到 instance-centric">
-- **产物**：[[{topic}_hub]]
+把本轮提炼出的每条能力，落成一条幂等命令（`--id` 给领域内稳定 slug，便于以后更新同一条）：
+
+```powershell
+# 新增已掌握（→ 并入 S_have，下次差集视为"已会"，不再展开）
+python $env:LEARNING_PIPELINE\scripts\background.py have-add `
+  --domain prediction --id simpl-symmetry `
+  --capability "对称/视角无关表示、相对位姿编码、instance-centric 消息传递" `
+  --status mastered --group main --topic SIMPL --source pipeline
+
+# 仍存疑/未深入（→ status: shaky；下次差集**不要**默认已会，遇到要补 S_bridge）
+python $env:LEARNING_PIPELINE\scripts\background.py have-add `
+  --domain concurrency --id thread-pool `
+  --capability "多线程 thread_pool 只认识、未深入" `
+  --status shaky --group prereq --topic SIMPL
 ```
 
-> "仍存疑/未深入"是关键设计：负向知识同样让差集更准——避免下次把没真懂的东西误判为 `S_have` 而跳过。
+- **`mastered` vs `shaky`** 是关键设计：`shaky` 是负向知识，让差集更准——避免下次把没真懂的误判为已会而跳过。
+- **`--id` 稳定**：同一条能力以后深入了，用同一 `--domain/--id` 再 `have-add --status mastered` 原地升级，不产生重复条目。
+- **心智模型变化 / 本轮叙事**：不进 `s_have`（那是"能力清单"）；值得留就写 `WORK_LOG.md`。
 
 ---
 
-## 4. 同步更新（轻量）
+## 4. 同步更新（大多是自动的）
 
-> 下面两项**写稳定档案 `$PERSONAL_BACKGROUND`**：
-- **能力现状表**（滚动汇总，非冻结）：把本轮台账新增**汇总**进「能力现状」表对应行（如"预测算法（理论/复现）"行追加"精读 SIMPL/VectorNet"）。这张表是**台账的粗粒度索引**，设计上就该随台账推进刷新——只反映**当前**、**不动「入职基线」锚点**；**与台账冲突时以台账细颗粒为准**，避免两处漂移。
-- **变更记录表**：加一行 `| YYYY-MM-DD | 完成 {topic} 流水线，台账新增 S_have：… |`。
-
-> 下面一项**写动态日志 `WORK_LOG.md`**（与 `$PERSONAL_BACKGROUND` 同目录），**不写回稳定档案**：
-- **工作进度（进度时间线 / 学习计划）**：若该主题对应的 TODO 已完成，在 `WORK_LOG.md` 里勾掉/更新进度。
-
-- 完成后把 hub `status` 置为 `done`。
+- **能力现状表**：不用手动维护——它是 `background.py have-table` 由 `s_have` 表生成的**视图**。要看就重渲染：`have-table --out 能力现状表.md`。
+- **变更记录**：`have-add` / `topic-status` 已自动写 `changelog` 表，无需手记。
+- **工作进度 / TODO**：若该主题对应的 TODO 已完成，在 `WORK_LOG.md` 里勾掉/更新（**不写进 DB**）。
+- **置 done + 刷新视图 + 自检**：
+  ```powershell
+  python $env:LEARNING_PIPELINE\scripts\background.py topic-status {topic} done
+  python $env:LEARNING_PIPELINE\scripts\background.py topic-render {topic}   # 刷新 obsidian hub 视图
+  python $env:LEARNING_PIPELINE\scripts\background.py validate              # FK/枚举/JSON 自检
+  ```
 
 ---
 
 ## 5. 硬边界
 
-- ❌ 不把整份教科书摘要塞进背景文档——台账只记"能力清单 + 存疑清单"，详情留在各主题产物里，用 `[[{topic}_hub]]` 链接。
-- ❌ 不臆测作者掌握程度：拿不准就记到"仍存疑/未深入"，宁可下次差集多补一点，也不要误判已会。
-- ❌ 不静默改**真正稳定的事实**（身份、出身、入职基线锚点）：确需修正时显式标注（如"⚠️ 原'出身纯 LLM 方向'修正为…"）。注意：「能力现状表」是设计上就随台账滚动刷新的索引，更新它**不算**静默改稳定事实，照常汇总即可。
+- ❌ 不把整份教科书摘要塞进 DB——`s_have` 只记"可相减的能力颗粒"，详情留在各主题产物里（hub 视图自动链）。
+- ❌ 不臆测作者掌握程度：拿不准就 `--status shaky`，宁可下次差集多补，也不要误判已会。
+- ❌ 不在 DB 里记基线锚点（身份/出身/入职基线）——那在 `baseline.yaml`；确需改稳定事实，显式改 `baseline.yaml` 并在 commit/note 里标注（如"⚠️ 原'出身纯 LLM 方向'修正为…"）。
+- ❌ 不手改 `background.db` 或生成的视图（能力现状表 / hub）——一律经 `have-add` / `topic-*`，改完重渲染。
 
 ---
 
 ## 6. 开工前应确认
 
-- 本轮主题的 hub / 教科书 / 复习卡路径（取料用）。
-- 是否同时把本轮台账新增汇总进「能力现状表」（默认：有明显推进就刷新；以台账为准）。
-- 是否随主题即时记，还是并入某个里程碑批量记。
+- 本轮主题的教科书 / 复习卡 / 归档路径（取料用）；topic 名与各能力的 `--domain` 归位。
+- 哪些是 `mastered`、哪些只能 `shaky`——拿不准逐条问，不替作者拔高。
+- 是否随主题即时记，还是并入某个里程碑批量记（幂等，批量补记不会重复计）。
